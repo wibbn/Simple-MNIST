@@ -13,12 +13,12 @@ def train(train_loader, model, criterion, optimizer, epochs=10, device=th.device
             data, target = data.to(device), target.to(device)
             optimizer.zero_grad()
             output = model(data)
-            print(output.shape, target.shape)
+            # print(output.shape, target.shape)
             loss = criterion(output, target)
             loss.backward()
             optimizer.step()
 
-            print(f'Epoch: {epoch} [{batch_id * len(data)}/{len(train_loader.dataset)}] ({100 * batch_id // len(train_loader)}%)\tLoss: {loss.item()}')
+            print(f'Epoch: {epoch+1}/{epochs} [{batch_id * len(data)}/{len(train_loader.dataset)}] ({round(100 * (batch_id + len(train_loader)*epoch) / (len(train_loader)*epochs))}%)\tLoss: {loss.item()}')
 
 def test(test_loader, model, device=th.device("cuda")):
     model.eval()
@@ -33,16 +33,12 @@ def test(test_loader, model, device=th.device("cuda")):
             prediction = output.argmax(dim=1, keepdim=True)
             correct += prediction.eq(target.view_as(prediction)).sum().item()
 
-    print(f'\nTest Results\n----------------------\nAccuracy: {correct}/{len(test_loader.dataset)} ({100 * correct // len(test_loader.dataset)}%)')
-
+    print(f'\nTest Results\n--------------------------\nAccuracy: {correct}/{len(test_loader.dataset)} ({round(100 * correct / len(test_loader.dataset))}%)\n')
 def main():
 
     params = {
-        # 'indoor_size': 5, 
-        # 'outdoor_size': 25, 
-        # 'input_size': (3, 128, 128), 
         'batch_size': 64,
-        'epochs': 10, 
+        'epochs': 2, 
         'lr': 1e-2
     }
 
@@ -67,7 +63,7 @@ def main():
     criterion = F.nll_loss
     optimizer = optim.Adam(model.parameters(), lr=params['lr'])
 
-    train(train_loader, model, criterion, optimizer)
+    train(train_loader, model, criterion, optimizer, epochs=params['epochs'])
     test(test_loader, model)
 
 if __name__ == '__main__':
